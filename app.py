@@ -1,8 +1,12 @@
 from flask import Flask, request, jsonify
 import requests
 from bs4 import BeautifulSoup
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+CORS(app)
+
 
 def scrape_text(url):
     headers = {
