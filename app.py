@@ -47,9 +47,13 @@ def scrape():
 
     try:
         text = scrape_text(url)
-        return jsonify({'html': text})
+        if not text or text.startswith("Failed to retrieve"):
+            return jsonify({'error': text}), 500
+
+        return jsonify({'text': text})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     import os
