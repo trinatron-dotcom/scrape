@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify
 import requests
 from bs4 import BeautifulSoup
 from flask_cors import CORS
+import os
+from datetime import datetime
+
 
 
 app = Flask(__name__)
@@ -14,20 +17,25 @@ def scrape_text(url):
     }
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
-        return f"Failed to retrieve {url} (status code: {response.status_code})"
+        return f"<p>Failed to retrieve {url} (status code: {response.status_code})</p>"
 
     soup = BeautifulSoup(response.content, 'html.parser')
 
-    # Remove script, style, header, and footer
+    # Remove unwanted tags
     for tag in soup(['script', 'style', 'header', 'footer', 'nav']):
         tag.decompose()
 
-    # Also remove common class names for header/footer
+    # Remove elements by common class names
     for class_name in ['header', 'footer', 'site-header', 'site-footer', 'navigation']:
         for tag in soup.select(f'.{class_name}'):
             tag.decompose()
 
-    return soup.get_text(separator='\n', strip=True)
+    # Try to extract the main content
+    if soup.body:
+        return str(soup.body)  # Keep formatting for frontend styling
+    else:
+        return str(soup)  # Fallback
+
 
 
 @app.route('/scrape', methods=['POST'])
@@ -39,7 +47,7 @@ def scrape():
 
     try:
         text = scrape_text(url)
-        return jsonify({'text': text})
+        return jsonify({'html': text})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
