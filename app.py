@@ -17,10 +17,18 @@ def scrape_text(url):
         return f"Failed to retrieve {url} (status code: {response.status_code})"
 
     soup = BeautifulSoup(response.content, 'html.parser')
-    for tag in soup(['script', 'style']):
+
+    # Remove script, style, header, and footer
+    for tag in soup(['script', 'style', 'header', 'footer', 'nav']):
         tag.decompose()
 
+    # Also remove common class names for header/footer
+    for class_name in ['header', 'footer', 'site-header', 'site-footer', 'navigation']:
+        for tag in soup.select(f'.{class_name}'):
+            tag.decompose()
+
     return soup.get_text(separator='\n', strip=True)
+
 
 @app.route('/scrape', methods=['POST'])
 def scrape():
