@@ -8,25 +8,42 @@ CORS(app)
 
 def scrape_text(url):
     headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.5'
-}
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
+    }
+
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         return f"Failed to retrieve {url} (status code: {response.status_code})"
 
     soup = BeautifulSoup(response.content, 'html.parser')
 
-    # Remove unwanted elements
-    for tag in soup(['script', 'style', 'header', 'footer', 'nav', 'img']):
+    # Remove unwanted tags
+    for tag in soup(['script', 'style', 'noscript', 'header', 'footer', 'nav', 'img']):
         tag.decompose()
 
-    # Remove common class names
-    for class_name in ['header', 'footer', 'site-header', 'site-footer', 'navigation']:
-        for tag in soup.select(f'.{class_name}'):
-            tag.decompose()
+    # Remove elements by common class names
+    common_classes = [
+        'header', 'footer', 'site-header', 'site-footer', 
+        'sidebar', 'nav', 'navigation', 'ad', 'ads', 
+        'breadcrumbs', 'scroll-to-top', 'top-link'
+    ]
+    for class_name in common_classes:
+        for el in soup.select(f'.{class_name}'):
+            el.decompose()
 
+    # Remove elements by common ID names
+    common_ids = [
+        'header', 'footer', 'site-header', 'site-footer', 
+        'sidebar', 'nav', 'navigation', 'ad', 'ads', 
+        'breadcrumbs', 'scroll-to-top', 'top-link'
+    ]
+    for id_name in common_ids:
+        for el in soup.select(f'#{id_name}'):
+            el.decompose()
+
+    # Convert content to markdown-style text
     markdown_lines = []
 
     for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'p', 'li', 'a']):
