@@ -71,9 +71,15 @@ def scrape_text(url):
 
     return "\n\n".join(markdown_lines)
 
+# 1. Map both paths so Render can't accidentally break routing on redirects
 @app.route('/scrape', methods=['POST', 'OPTIONS'])
+@app.route('/scrape/', methods=['POST', 'OPTIONS'])
 def scrape():
-    data = request.get_json()
+    # 2. Forcibly intercept the browser's preflight check and grant immediate access
+    if request.method == 'OPTIONS':
+        return '', 200
+
+    data = request.get_json() or {}
     url = data.get('url')
     if not url:
         return jsonify({'error': 'No URL provided'}), 400
