@@ -71,7 +71,7 @@ def scrape_text(url):
 
     return "\n\n".join(markdown_lines)
 
-@app.route('/scrape', methods=['POST'])
+@app.route('/scrape', methods=['POST', 'OPTIONS'])
 def scrape():
     data = request.get_json()
     url = data.get('url')
